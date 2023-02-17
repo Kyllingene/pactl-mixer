@@ -1,0 +1,14 @@
+[package]
+name = "pactl-mixer"
+version = "1.0.0"
+edition = "2021"
+
+[dependencies]
+regex = "1.7"
+sarge = "2.0"
+
+eframe = {version = "0.21", optional = true}
+
+[features]
+default = ["gui"]
+gui = ["dep:eframe"]
