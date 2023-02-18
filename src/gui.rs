@@ -1,8 +1,8 @@
 use std::process::exit;
 
-use eframe::egui;
 use crate::source::*;
-// 
+use eframe::egui;
+//
 pub fn run_app() -> Result<(), eframe::Error> {
     let options = eframe::NativeOptions {
         initial_window_size: Some(egui::vec2(320.0, 240.0)),
@@ -22,7 +22,9 @@ pub struct Mixer {
 
 impl Default for Mixer {
     fn default() -> Self {
-        Self { sources: Sources::new() }
+        Self {
+            sources: Sources::new(),
+        }
     }
 }
 
@@ -36,7 +38,10 @@ impl eframe::App for Mixer {
                     ui.label(format!("{} (id: {})", source.name(), source.id()));
                     ui.horizontal(|ui| {
                         ui.label("Volume");
-                        if ui.add(egui::Slider::new(&mut source.volume, 0..=200)).changed() {
+                        if ui
+                            .add(egui::Slider::new(&mut source.volume, 0..=200))
+                            .changed()
+                        {
                             source.flush().unwrap_or_else(|e| {
                                 eprintln!("error (when changing {}.volume): {e}", source.id());
                             });

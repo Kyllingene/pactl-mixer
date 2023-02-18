@@ -1,8 +1,7 @@
 use std::process::exit;
 
-use sarge::*;
 use crate::source::*;
-
+use sarge::*;
 
 pub fn cli<R>(app: Option<&dyn Fn() -> Result<(), R>>) -> Result<(), R> {
     let mut sources = Sources::new();
@@ -44,7 +43,7 @@ pub fn cli<R>(app: Option<&dyn Fn() -> Result<(), R>>) -> Result<(), R> {
             eprintln!("error: no source matches '{name}'");
             exit(1);
         });
-    } else if let Some(app) = app { 
+    } else if let Some(app) = app {
         return app();
     } else {
         eprintln!("error: must provide a name or id");

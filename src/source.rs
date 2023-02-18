@@ -1,4 +1,7 @@
-use std::{process::{Command, Stdio}, ops::{Deref, DerefMut}};
+use std::{
+    ops::{Deref, DerefMut},
+    process::{Command, Stdio},
+};
 
 use regex::Regex;
 
@@ -17,16 +20,16 @@ impl Source {
         if status != 0 {
             return Err(std::io::Error::from_raw_os_error(status));
         }
-    
+
         let status = self.flush_mute()?.code().unwrap_or(0);
         if status != 0 {
             return Err(std::io::Error::from_raw_os_error(status));
         }
-    
+
         Ok(())
     }
 
-    pub fn flush_volume(&self) -> Result<std::process::ExitStatus, std::io::Error> {    
+    pub fn flush_volume(&self) -> Result<std::process::ExitStatus, std::io::Error> {
         Command::new("pactl")
             .arg("set-sink-input-volume")
             .arg(self.id.to_string())
@@ -35,7 +38,7 @@ impl Source {
             .map(|out| out.status)
     }
 
-    pub fn flush_mute(&self) -> Result<std::process::ExitStatus, std::io::Error> {    
+    pub fn flush_mute(&self) -> Result<std::process::ExitStatus, std::io::Error> {
         Command::new("pactl")
             .arg("set-sink-input-mute")
             .arg(self.id.to_string())
@@ -53,7 +56,7 @@ impl Source {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub struct Sources(Vec<Source>);
 
 impl Deref for Sources {
@@ -71,7 +74,7 @@ impl DerefMut for Sources {
 
 impl From<Sources> for Vec<Source> {
     fn from(sources: Sources) -> Self {
-        sources.0.clone()
+        sources.0
     }
 }
 
@@ -102,14 +105,14 @@ impl Sources {
     pub fn update(&mut self) {
         let raw = String::from_utf8(
             Command::new("pactl")
-            .args(["list", "sink-inputs"])
-            .stdout(Stdio::piped())
-            .output()
-            .unwrap()
-            .stdout,
+                .args(["list", "sink-inputs"])
+                .stdout(Stdio::piped())
+                .output()
+                .unwrap()
+                .stdout,
         )
         .unwrap();
-    
+
         let raw_sources: Vec<Vec<String>> = raw
             .replace('\t', "")
             .split("\n\n")
@@ -122,7 +125,7 @@ impl Sources {
             let mut volume: i32 = 0;
             let mut mute = false;
             let mut name = String::new();
-    
+
             for line in raw_source {
                 if line.starts_with("Mute: ") {
                     if line.contains("yes") {
@@ -130,14 +133,14 @@ impl Sources {
                     }
                 } else if line.starts_with("Volume: ") {
                     let re = Regex::new(r"Volume: front-left: \d+ / +(\d+)% / (-?[\d.]+|-inf) dB,   front-right: \d+ / +(\d+)% / (-?[\d.]+|-inf) dB").unwrap();
-    
+
                     let caps = re.captures(&line).unwrap();
                     volume = caps[1].parse().unwrap();
                 } else if line.starts_with("application.name = ") {
                     name = line[20..].to_string().replace('"', "");
                 }
             }
-    
+
             self.0.push(Source {
                 id,
                 name,

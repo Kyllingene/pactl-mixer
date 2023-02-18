@@ -1,5 +1,5 @@
-pub mod source;
 pub mod cli;
+pub mod source;
 
 #[cfg(feature = "gui")]
 pub mod gui;
