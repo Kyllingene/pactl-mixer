@@ -103,6 +103,7 @@ impl Sources {
     }
 
     pub fn update(&mut self) {
+        self.0.clear();
         let raw = String::from_utf8(
             Command::new("pactl")
                 .args(["list", "sink-inputs"])
@@ -111,15 +112,18 @@ impl Sources {
                 .unwrap()
                 .stdout,
         )
-        .unwrap();
+        .unwrap()
+        .replace('\t', "");
+
+        if raw.is_empty() {
+            return;
+        }
 
         let raw_sources: Vec<Vec<String>> = raw
-            .replace('\t', "")
             .split("\n\n")
             .map(|line| line.split('\n').map(String::from).collect::<Vec<String>>())
             .collect();
 
-        self.0.clear();
         for raw_source in raw_sources {
             let id: i32 = raw_source[0][12..].parse().unwrap();
             let mut volume: i32 = 0;
