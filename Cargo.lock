@@ -1350,7 +1350,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "pactl-mixer"
+name = "pamixer"
 version = "1.0.0"
 dependencies = [
  "eframe",
