@@ -12,6 +12,7 @@ pub struct Source {
 
     pub volume: i32,
     pub mute: bool,
+    pub locked: bool,
 }
 
 impl Source {
@@ -103,7 +104,11 @@ impl Sources {
     }
 
     pub fn update(&mut self) {
-        self.0.clear();
+        self.0.retain(|source| source.locked);
+        self.0.iter_mut().for_each(|source| {
+            source.id = -1;
+        });
+
         let raw = String::from_utf8(
             Command::new("pactl")
                 .args(["list", "sink-inputs"])
@@ -145,12 +150,20 @@ impl Sources {
                 }
             }
 
-            self.0.push(Source {
-                id,
-                name,
-                volume,
-                mute,
-            });
+            if let Some(source) = self.0.iter_mut()
+                .find(|source| source.name == name) {
+                source.id = id;
+                source.volume = volume;
+                source.mute = mute;
+            } else {
+                self.0.push(Source {
+                    id,
+                    name,
+                    volume,
+                    mute,
+                    locked: false,
+                });
+            }
         }
     }
 }

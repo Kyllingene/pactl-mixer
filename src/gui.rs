@@ -35,23 +35,31 @@ impl eframe::App for Mixer {
 
             ui.vertical(|ui| {
                 for source in self.sources.iter_mut() {
-                    ui.label(format!("{} (id: {})", source.name(), source.id()));
-                    ui.horizontal(|ui| {
-                        ui.label("Volume");
-                        if ui
-                            .add(egui::Slider::new(&mut source.volume, 0..=200))
-                            .changed()
-                        {
-                            source.flush().unwrap_or_else(|e| {
-                                eprintln!("error (when changing {}.volume): {e}", source.id());
-                            });
+                    ui.group(|ui| {
+                        if source.id() == -1 {
+                            ui.set_enabled(false);
                         }
 
-                        if ui.toggle_value(&mut source.mute, "Mute").changed() {
-                            source.flush().unwrap_or_else(|e| {
-                                eprintln!("error (when changing {}.mute): {e}", source.id());
-                            });
-                        }
+                        ui.label(format!("{} (id: {})", source.name(), source.id()));
+                        ui.horizontal(|ui| {
+                            ui.label("Volume");
+                            if ui
+                                .add(egui::Slider::new(&mut source.volume, 0..=200))
+                                .changed()
+                            {
+                                source.flush().unwrap_or_else(|e| {
+                                    eprintln!("error (when changing {}.volume): {e}", source.id());
+                                });
+                            }
+
+                            if ui.toggle_value(&mut source.mute, "Mute").changed() {
+                                source.flush().unwrap_or_else(|e| {
+                                    eprintln!("error (when changing {}.mute): {e}", source.id());
+                                });
+                            }
+
+                            ui.toggle_value(&mut source.locked, "Lock");
+                        });
                     });
                 }
             });
