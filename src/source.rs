@@ -129,6 +129,9 @@ impl Sources {
             .map(|line| line.split('\n').map(String::from).collect::<Vec<String>>())
             .collect();
 
+        let stereo = Regex::new(r"Volume: front-left: \d+ / +(\d+)% / (-?[\d.]+|-inf) dB,   front-right: \d+ / +(\d+)% / (-?[\d.]+|-inf) dB").unwrap();
+        let mono = Regex::new(r"Volume: mono: \d+ / +(\d+)% / (-?[\d.]+|-inf) dB").unwrap();
+
         for raw_source in raw_sources {
             let id: i32 = raw_source[0][12..].parse().unwrap();
             let mut volume: i32 = 0;
@@ -141,10 +144,13 @@ impl Sources {
                         mute = true;
                     }
                 } else if line.starts_with("Volume: ") {
-                    let re = Regex::new(r"Volume: front-left: \d+ / +(\d+)% / (-?[\d.]+|-inf) dB,   front-right: \d+ / +(\d+)% / (-?[\d.]+|-inf) dB").unwrap();
-
-                    let caps = re.captures(&line).unwrap();
-                    volume = caps[1].parse().unwrap();
+                    if let Some(caps) = stereo.captures(&line) {
+                        volume = caps[1].parse().unwrap();
+                    } else if let Some(caps) = mono.captures(&line) {
+                        volume = caps[1].parse().unwrap();
+                    } else {
+                        eprintln!("warn: unable to get volume for sink #{id} (didn't match stereo or mono)");
+                    }
                 } else if line.starts_with("application.name = ") {
                     name = line[20..].to_string().replace('"', "");
                 }
